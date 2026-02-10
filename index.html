@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Conversation Starters</title>
+  <link rel="stylesheet" href="style.css" />
+  <meta name="description" content="Random conversation starters by category." />
+</head>
+<body>
+  <main class="wrap">
+    <header class="header">
+      <div>
+        <h1>Conversation Starters</h1>
+        <p class="sub">Pick a vibe, tap for a question, and keep it moving ✨</p>
+      </div>
+      <button id="shareBtn" class="btn btn-ghost" type="button" title="Copy a shareable link">
+        Share
+      </button>
+    </header>
+
+    <section class="controls" aria-label="Controls">
+      <label class="field">
+        <span class="label">Category</span>
+        <select id="categorySelect" class="select">
+          <option value="All">All</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span class="label">Mode</span>
+        <select id="modeSelect" class="select">
+          <option value="noRepeat">No repeats (recommended)</option>
+          <option value="any">Any random</option>
+        </select>
+      </label>
+
+      <div class="buttons">
+        <button id="newBtn" class="btn btn-primary" type="button">Give me a question</button>
+        <button id="copyBtn" class="btn btn-ghost" type="button">Copy</button>
+        <button id="favBtn" class="btn btn-ghost" type="button" aria-pressed="false" title="Favorite">
+          <span id="favIcon" aria-hidden="true">☆</span> Favorite
+        </button>
+      </div>
+    </section>
+
+    <section class="card" aria-live="polite">
+      <div class="cardGlow" aria-hidden="true"></div>
+      <div class="meta">
+        <span id="pill" class="pill">All</span>
+        <span id="count" class="count"></span>
+      </div>
+      <p id="question" class="question">Tap <b>Give me a question</b> to start.</p>
+    </section>
+
+    <section class="favorites">
+      <div class="favoritesHead">
+        <h2>Favorites</h2>
+        <div class="favoritesActions">
+          <button id="clearFavsBtn" class="btn btn-ghost" type="button">Clear</button>
+          <button id="copyFavsBtn" class="btn btn-ghost" type="button">Copy all</button>
+        </div>
+      </div>
+      <ul id="favoritesList" class="favoritesList"></ul>
+      <p id="favoritesEmpty" class="muted">No favorites yet — star a question to save it.</p>
+    </section>
+
+    <footer class="footer">
+      <span class="muted">Tip: on iPhone, open in Safari → Share → “Add to Home Screen”.</span>
+    </footer>
+  </main>
+
+  <script src="questions.js"></script>
+  <script>
+    // ---------- Helpers ----------
+    const $ = (id) => document.getElementById(id);
+    const storage = {
+      get(key, fallback) {
+        try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
+      },
+      set(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+    };
+
+    const QUESTIONS = (window.QUESTIONS || []).map(q => ({
+      id: q.id,
+      category: String(q.category || '').trim(),
+      question: String(q.question || '').trim()
+    })).filter(q => q.category && q.question);
+
+    const categories = Array.from(new Set(QUESTIONS.map(q => q.category))).sort();
+
+    // ---------- State ----------
+    const state = {
+      category: "All",
+      mode: "noRepeat",
+      currentId: null,
+      // usedByCategory holds arrays of question ids used for each category + All
+      usedByCategory: storage.get("cs_usedByCategory_v1", {}),
+      favorites: storage.get("cs_favorites_v1", []) // array of ids
+    };
+
+    // ---------- UI Elements ----------
+    const categorySelect = $("categorySelect");
+    const modeSelect = $("modeSelect");
+    const questionEl = $("question");
+    const pillEl = $("pill");
+    const countEl = $("count");
+    const favBtn = $("favBtn");
+    const favIcon = $("favIcon");
+    const favoritesList = $("favoritesList");
+    const favoritesEmpty = $("favoritesEmpty");
+    const accentLabel = $("accentLabel");
+
+    // ---------- Init controls ----------
+    function initCategorySelect() {
+      for (const c of categories) {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        categorySelect.appendChild(opt);
+      }
+    }
+
+    function setMeta(category, availableCount, totalCount) {
+      pillEl.textContent = category;
+      pillEl.dataset.cat = category;
+      document.body.dataset.activeCat = category;
+      if (accentLabel) accentLabel.textContent = category;
+      countEl.textContent = totalCount ? `${availableCount} / ${totalCount} available` : "";
+    }
+
+    function filteredQuestions(category) {
+      if (category === "All") return QUESTIONS;
+      return QUESTIONS.filter(q => q.category === category);
+    }
+
+    function usedSetFor(category) {
+      const used = state.usedByCategory[category] || [];
+      return new Set(used);
+    }
+
+    function markUsed(category, id) {
+      const used = state.usedByCategory[category] || [];
+      if (!used.includes(id)) used.push(id);
+      state.usedByCategory[category] = used;
+      storage.set("cs_usedByCategory_v1", state.usedByCategory);
+    }
+
+    function resetUsed(category) {
+      state.usedByCategory[category] = [];
+      storage.set("cs_usedByCategory_v1", state.usedByCategory);
+    }
+
+    function pickRandom(list) {
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function getNextQuestion() {
+      const list = filteredQuestions(state.category);
+      const totalCount = list.length;
+
+      if (totalCount === 0) return null;
+
+      if (state.mode === "any") {
+        return pickRandom(list);
+      }
+
+      // noRepeat
+      const used = usedSetFor(state.category);
+      let available = list.filter(q => !used.has(q.id));
+
+      if (available.length === 0) {
+        // auto-reset and continue
+        resetUsed(state.category);
+        available = list;
+      }
+
+      return pickRandom(available);
+    }
+
+    function isFavorited(id) {
+      return state.favorites.includes(id);
+    }
+
+    function toggleFavorite(id) {
+      if (id == null) return;
+      if (isFavorited(id)) {
+        state.favorites = state.favorites.filter(x => x !== id);
+      } else {
+        state.favorites = [id, ...state.favorites];
+      }
+      storage.set("cs_favorites_v1", state.favorites);
+      renderFavoriteButton();
+      renderFavorites();
+    }
+
+    function renderFavoriteButton() {
+      const on = isFavorited(state.currentId);
+      favBtn.setAttribute("aria-pressed", String(on));
+      favIcon.textContent = on ? "★" : "☆";
+      favBtn.classList.toggle("is-on", on);
+    }
+
+    function renderFavorites() {
+      favoritesList.innerHTML = "";
+      const favItems = state.favorites
+        .map(id => QUESTIONS.find(q => q.id === id))
+        .filter(Boolean);
+
+      favoritesEmpty.style.display = favItems.length ? "none" : "block";
+
+      for (const q of favItems) {
+        const li = document.createElement("li");
+        li.className = "favItem";
+        li.innerHTML = `
+          <div class="favTop">
+            <span class="pill pill-small" data-cat="${escapeHtml(q.category)}">${escapeHtml(q.category)}</span>
+            <button class="iconBtn" type="button" title="Remove from favorites" aria-label="Remove">✕</button>
+          </div>
+          <div class="favQ">${escapeHtml(q.question)}</div>
+        `;
+        li.querySelector("button").addEventListener("click", () => {
+          state.favorites = state.favorites.filter(x => x !== q.id);
+          storage.set("cs_favorites_v1", state.favorites);
+          renderFavoriteButton();
+          renderFavorites();
+        });
+        favoritesList.appendChild(li);
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function setCurrentQuestion(q) {
+      if (!q) return;
+      state.currentId = q.id;
+      questionEl.textContent = q.question;
+
+      // Accent + pill follow the actual card shown
+      pillEl.textContent = q.category;
+      pillEl.dataset.cat = q.category;
+      document.body.dataset.activeCat = q.category;
+      if (accentLabel) accentLabel.textContent = q.category;
+
+      // Update availability counts
+      const list = filteredQuestions(state.category);
+      const used = usedSetFor(state.category);
+      const availableCount = state.mode === "any" ? list.length : list.filter(x => !used.has(x.id)).length;
+      setMeta(state.category, availableCount, list.length);
+
+      // Mark used (only in noRepeat mode)
+      if (state.mode === "noRepeat") markUsed(state.category, q.id);
+
+      renderFavoriteButton();
+      updateUrlState();
+    }
+
+    // ---------- Copy / Share ----------
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        toast("Copied!");
+      } catch {
+        // fallback
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        toast("Copied!");
+      }
+    }
+
+    function toast(msg) {
+      const t = document.createElement("div");
+      t.className = "toast";
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.classList.add("show"), 10);
+      setTimeout(() => {
+        t.classList.remove("show");
+        setTimeout(() => t.remove(), 300);
+      }, 1200);
+    }
+
+    function buildShareUrl() {
+      const url = new URL(window.location.href);
+      url.searchParams.set("cat", state.category);
+      if (state.currentId != null) url.searchParams.set("q", String(state.currentId));
+      url.searchParams.set("mode", state.mode);
+      return url.toString();
+    }
+
+    function updateUrlState() {
+      const url = new URL(window.location.href);
+      url.searchParams.set("cat", state.category);
+      url.searchParams.set("mode", state.mode);
+      if (state.currentId != null) url.searchParams.set("q", String(state.currentId));
+      window.history.replaceState({}, "", url);
+    }
+
+    function hydrateFromUrl() {
+      const url = new URL(window.location.href);
+      const cat = url.searchParams.get("cat");
+      const mode = url.searchParams.get("mode");
+      const q = url.searchParams.get("q");
+
+      if (cat && (cat === "All" || categories.includes(cat))) state.category = cat;
+      if (mode && (mode === "noRepeat" || mode === "any")) state.mode = mode;
+
+      categorySelect.value = state.category;
+      modeSelect.value = state.mode;
+
+      if (q) {
+        const id = Number(q);
+        const found = QUESTIONS.find(x => x.id === id);
+        if (found) {
+          state.currentId = found.id;
+          questionEl.textContent = found.question;
+        }
+      }
+
+      // meta counts
+      const list = filteredQuestions(state.category);
+      const used = usedSetFor(state.category);
+      const availableCount = state.mode === "any" ? list.length : list.filter(x => !used.has(x.id)).length;
+      setMeta(state.category, availableCount, list.length);
+
+      renderFavoriteButton();
+      renderFavorites();
+    }
+
+    // ---------- Event listeners ----------
+    $("newBtn").addEventListener("click", () => {
+      const q = getNextQuestion();
+      setCurrentQuestion(q);
+    });
+
+    $("copyBtn").addEventListener("click", () => {
+      const text = state.currentId ? questionEl.textContent : "";
+      if (!text) return toast("Pick a question first");
+      copyText(text);
+    });
+
+    favBtn.addEventListener("click", () => toggleFavorite(state.currentId));
+
+    $("clearFavsBtn").addEventListener("click", () => {
+      state.favorites = [];
+      storage.set("cs_favorites_v1", state.favorites);
+      renderFavoriteButton();
+      renderFavorites();
+      toast("Cleared");
+    });
+
+    $("copyFavsBtn").addEventListener("click", () => {
+      const favItems = state.favorites
+        .map(id => QUESTIONS.find(q => q.id === id))
+        .filter(Boolean);
+
+      if (!favItems.length) return toast("No favorites yet");
+      const text = favItems.map(q => `[${q.category}] ${q.question}`).join("\n");
+      copyText(text);
+    });
+
+    $("shareBtn").addEventListener("click", () => {
+      copyText(buildShareUrl());
+    });
+
+    categorySelect.addEventListener("change", () => {
+      state.category = categorySelect.value;
+      state.currentId = null;
+      questionEl.innerHTML = "Tap <b>Give me a question</b> to start.";
+      pillEl.textContent = state.category;
+      pillEl.dataset.cat = state.category;
+      document.body.dataset.activeCat = state.category;
+      if (accentLabel) accentLabel.textContent = state.category;
+      renderFavoriteButton();
+
+      const list = filteredQuestions(state.category);
+      const used = usedSetFor(state.category);
+      const availableCount = state.mode === "any" ? list.length : list.filter(x => !used.has(x.id)).length;
+      setMeta(state.category, availableCount, list.length);
+      updateUrlState();
+    });
+
+    modeSelect.addEventListener("change", () => {
+      state.mode = modeSelect.value;
+      const list = filteredQuestions(state.category);
+      const used = usedSetFor(state.category);
+      const availableCount = state.mode === "any" ? list.length : list.filter(x => !used.has(x.id)).length;
+      setMeta(state.category, availableCount, list.length);
+      updateUrlState();
+    });
+
+    // ---------- Boot ----------
+    initCategorySelect();
+    hydrateFromUrl();
+  </script>
+</body>
+</html>
