@@ -11,8 +11,8 @@
   <main class="wrap">
     <header class="header">
       <div>
-        <h1>Conversation Starters</h1>
-        <p class="sub">Pick a vibe, tap for a question, and keep it moving ✨</p>
+        <h1>🃏 The Question Game</h1>
+        <p class="sub">Pick a vibe, pull a card, and keep it moving ✨</p>
       </div>
       <button id="shareBtn" class="btn btn-ghost" type="button" title="Copy a shareable link">
         Share
@@ -36,7 +36,7 @@
       </label>
 
       <div class="buttons">
-        <button id="newBtn" class="btn btn-primary" type="button">Give me a question</button>
+        <button id="newBtn" class="btn btn-primary" type="button">New Question</button>
         <button id="copyBtn" class="btn btn-ghost" type="button">Copy</button>
         <button id="favBtn" class="btn btn-ghost" type="button" aria-pressed="false" title="Favorite">
           <span id="favIcon" aria-hidden="true">☆</span> Favorite
@@ -44,8 +44,9 @@
       </div>
     </section>
 
-    <section class="card" aria-live="polite">
+    <section id="card" class="card" aria-live="polite">
       <div class="cardGlow" aria-hidden="true"></div>
+      <div class="cardSheen" aria-hidden="true"></div>
       <div class="meta">
         <span id="pill" class="pill">All</span>
         <span id="count" class="count"></span>
@@ -66,7 +67,7 @@
     </section>
 
     <footer class="footer">
-      <span class="muted">Tip: on iPhone, open in Safari → Share → “Add to Home Screen”.</span>
+      <span class="muted">Tip: Bookmark this page or add it to your home screen for quick access.</span>
     </footer>
   </main>
 
@@ -277,6 +278,14 @@
         document.body.removeChild(ta);
         toast("Copied!");
       }
+    }
+
+    function animateCard(){
+      const card = $("card");
+      if(!card) return;
+      card.classList.remove("is-animating");
+      void card.offsetWidth; // reflow
+      card.classList.add("is-animating");
     }
 
     function toast(msg) {

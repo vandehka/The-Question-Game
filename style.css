@@ -156,7 +156,11 @@ body{
   padding: 18px 18px 20px;
   border-radius: var(--radius);
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.06);
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--accent) 30%, rgba(0,0,0,.88)),
+    rgba(0,0,0,.86) 72%
+  );
   box-shadow: var(--shadow);
   backdrop-filter: blur(12px);
   position: relative;
@@ -349,4 +353,39 @@ body[data-active-cat="All"]  { --accent:rgba(255,255,255,.9); --accentSoft: rgba
   .controls{ grid-template-columns: 1fr; }
   .header{ align-items:flex-start; flex-direction:column; }
   .badge{ align-self:flex-start; }
+}
+
+
+/* Accent edge + sheen */
+.card{
+  border-color: color-mix(in srgb, var(--accent) 32%, rgba(255,255,255,.14));
+}
+
+.cardSheen{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background: linear-gradient(120deg, rgba(255,255,255,.14), transparent 45%, rgba(255,255,255,.08));
+  mix-blend-mode: overlay;
+  opacity:.35;
+}
+
+/* Card deal animation */
+@keyframes dealIn{
+  0%{ transform: translateY(10px) rotate(-0.9deg) scale(.992); filter: blur(.15px); }
+  55%{ transform: translateY(-2px) rotate(0.7deg) scale(1.004); }
+  100%{ transform: translateY(0px) rotate(0deg) scale(1); filter: blur(0px); }
+}
+.card.is-animating{
+  animation: dealIn 280ms ease-out;
+}
+
+/* Tiny hover tilt (desktop only) */
+@media (hover:hover){
+  .card{
+    transition: transform .12s ease;
+  }
+  .card:hover{
+    transform: translateY(-1px) rotate(.15deg);
+  }
 }
