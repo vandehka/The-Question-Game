@@ -1,221 +1,464 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>The Question Game</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Question Game</title>
   <link rel="stylesheet" href="style.css" />
+  <meta name="description" content="Pick a vibe, pull a card, and keep it moving." />
 </head>
-<body data-active-cat="All">
-  <div class="wrap">
+<body>
+  <main class="wrap">
     <header class="header">
       <div>
         <h1>🃏 The Question Game</h1>
         <p class="sub">Pick a vibe, pull a card, and keep it moving ✨</p>
       </div>
-      <button id="shareBtn" class="btn btn-ghost">Share</button>
+      <button id="shareBtn" class="btn btn-ghost" type="button" title="Copy a shareable link">
+        Share
+      </button>
     </header>
 
-    <section class="controls">
-      <div class="field">
-        <label class="label">Vibe</label>
-        <select id="categorySelect" class="select"></select>
-      </div>
-
-      <div class="field">
-        <label class="label">Mode</label>
-        <select id="modeSelect" class="select">
-          <option value="norepeat">No repeats (recommended)</option>
-          <option value="repeat">Allow repeats</option>
+    <section class="controls" aria-label="Controls">
+      <label class="field">
+        <span class="label">Vibe</span>
+        <select id="categorySelect" class="select">
+          <option value="All">All</option>
         </select>
-      </div>
+      </label>
+
+      <label class="field">
+        <span class="label">Mode</span>
+        <select id="modeSelect" class="select">
+          <option value="noRepeat">No repeats (recommended)</option>
+          <option value="any">Any random</option>
+        </select>
+      </label>
 
       <div class="buttons">
-        <button id="resetDeckBtn" class="btn btn-ghost">Reset deck</button>
-        <button id="newBtn" class="btn btn-primary">New Question</button>
-        <button id="copyBtn" class="btn">Copy</button>
-        <button id="favBtn" class="btn">Save for later</button>
+        <button id="resetDeckBtn" class="btn btn-ghost" type="button">Reset deck</button>
+        <button id="newBtn" class="btn btn-primary" type="button">New Question</button>
+        <button id="copyBtn" class="btn btn-ghost" type="button">Copy</button>
+        <button id="favBtn" class="btn btn-ghost" type="button" aria-pressed="false" title="Save for later">
+          <span id="favIcon" aria-hidden="true">☆</span> Save for later
+        </button>
       </div>
     </section>
 
-    <section id="card" class="card" aria-live="polite"
-      onclick="document.getElementById('newBtn').click()">
-      <div class="cardGlow"></div>
-      <div class="cardSheen"></div>
-
+    <section id="card" class="card" aria-live="polite">
+      <div class="cardGlow" aria-hidden="true"></div>
+      <div class="cardSheen" aria-hidden="true"></div>
       <div class="meta">
-        <span class="pill" id="pill">All</span>
-        <span class="count" id="count"></span>
+        <span id="pill" class="pill">All</span>
+        <span id="count" class="count"></span>
       </div>
-
-      <p class="question" id="question">
-        Tap <b>New Question</b> to deal your first card.
-      </p>
+      <p id="question" class="question">Tap <b>New Question</b> to deal your first card.</p>
     </section>
 
-    <section class="favorites">
+    <section id="favoritesSection" class="favorites">
       <div class="favoritesHead">
         <h2>Saved for later (<span id="savedCount">0</span>)</h2>
         <div class="favoritesActions">
-          <button id="clearFavs" class="btn btn-ghost">Clear</button>
-          <button id="copyFavs" class="btn btn-ghost">Copy all</button>
+          <button id="clearFavsBtn" class="btn btn-ghost" type="button">Clear</button>
+          <button id="copyFavsBtn" class="btn btn-ghost" type="button">Copy all</button>
         </div>
       </div>
-      <ul class="favoritesList" id="favoritesList"></ul>
-      <p class="muted" id="favoritesEmpty">
-        Nothing saved yet — save a question to revisit it later.
-      </p>
+      <ul id="favoritesList" class="favoritesList"></ul>
+      <p id="favoritesEmpty" class="muted">Nothing saved yet — save a question to revisit it later.</p>
     </section>
 
     <footer class="footer">
-      <span>Tip: Bookmark this page or add it to your home screen for quick access.</span>
+      <span class="muted">Tip: Bookmark this page or add it to your home screen for quick access.</span>
     </footer>
-  </div>
-
-  <div class="toast" id="toast"></div>
+  </main>
 
   <script src="questions.js"></script>
   <script>
-    const $ = id => document.getElementById(id);
+    // ---------- Helpers ----------
+    const $ = (id) => document.getElementById(id);
 
+    const storage = {
+      get(key, fallback) {
+        try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+        catch { return fallback; }
+      },
+      set(key, value) {
+        localStorage.setItem(key, JSON.stringify(value));
+      },
+      remove(key) {
+        localStorage.removeItem(key);
+      }
+    };
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function pickRandom(list) {
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    // ---------- Data ----------
+    const QUESTIONS = (window.QUESTIONS || [])
+      .map(q => ({
+        id: q.id,
+        category: String(q.category || "").trim(),
+        question: String(q.question || "").trim()
+      }))
+      .filter(q => q.category && q.question);
+
+    const categories = Array.from(new Set(QUESTIONS.map(q => q.category))).sort();
+
+    // ---------- State ----------
+    const state = {
+      category: "All",
+      mode: "noRepeat",
+      currentId: null,
+      // usedByCategory holds arrays of question ids used for each category + All
+      usedByCategory: storage.get("cs_usedByCategory_v1", {}),
+      // favorites holds question ids
+      favorites: storage.get("cs_favorites_v1", [])
+    };
+
+    // ---------- UI Elements ----------
     const categorySelect = $("categorySelect");
     const modeSelect = $("modeSelect");
-    const newBtn = $("newBtn");
-    const copyBtn = $("copyBtn");
-    const favBtn = $("favBtn");
-    const resetDeckBtn = $("resetDeckBtn");
-    const shareBtn = $("shareBtn");
-
     const questionEl = $("question");
     const pillEl = $("pill");
     const countEl = $("count");
+    const favBtn = $("favBtn");
+    const favIcon = $("favIcon");
+    const favoritesSection = $("favoritesSection");
     const favoritesList = $("favoritesList");
     const favoritesEmpty = $("favoritesEmpty");
     const savedCountEl = $("savedCount");
-    const toastEl = $("toast");
 
-    let state = {
-      category: "All",
-      mode: "norepeat",
-      seen: new Set(),
-      current: null,
-      favorites: JSON.parse(localStorage.getItem("favorites") || "[]")
-    };
-
-    function toast(msg){
-      toastEl.textContent = msg;
-      toastEl.classList.add("show");
-      setTimeout(() => toastEl.classList.remove("show"), 1400);
+    // ---------- Init controls ----------
+    function initCategorySelect() {
+      for (const c of categories) {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        categorySelect.appendChild(opt);
+      }
     }
 
-    function animateCard(){
+    function filteredQuestions(category) {
+      if (category === "All") return QUESTIONS;
+      return QUESTIONS.filter(q => q.category === category);
+    }
+
+    function usedSetFor(category) {
+      const used = state.usedByCategory[category] || [];
+      return new Set(used);
+    }
+
+    function markUsed(category, id) {
+      const used = state.usedByCategory[category] || [];
+      if (!used.includes(id)) used.push(id);
+      state.usedByCategory[category] = used;
+      storage.set("cs_usedByCategory_v1", state.usedByCategory);
+    }
+
+    function resetUsed(category) {
+      state.usedByCategory[category] = [];
+      storage.set("cs_usedByCategory_v1", state.usedByCategory);
+    }
+
+    function setMeta(category, availableCount, totalCount) {
+      pillEl.textContent = category;
+      pillEl.dataset.cat = category;
+      document.body.dataset.activeCat = category;
+      countEl.textContent = totalCount ? `${availableCount} / ${totalCount} available` : "";
+    }
+
+    function getNextQuestion() {
+      const list = filteredQuestions(state.category);
+      const totalCount = list.length;
+      if (totalCount === 0) return null;
+
+      if (state.mode === "any") return pickRandom(list);
+
+      // noRepeat
+      const used = usedSetFor(state.category);
+      let available = list.filter(q => !used.has(q.id));
+
+      if (available.length === 0) {
+        // auto-reset and continue
+        resetUsed(state.category);
+        available = list;
+      }
+
+      return pickRandom(available);
+    }
+
+    // ---------- Favorites / Saved for later ----------
+    function isFavorited(id) {
+      return state.favorites.includes(id);
+    }
+
+    function persistFavorites() {
+      // Important: remove the key when empty so it truly clears (Safari can be sticky with "[]")
+      if (!Array.isArray(state.favorites) || state.favorites.length === 0) {
+        state.favorites = [];
+        storage.remove("cs_favorites_v1");
+      } else {
+        storage.set("cs_favorites_v1", state.favorites);
+      }
+    }
+
+    function renderFavoriteButton() {
+      const on = isFavorited(state.currentId);
+      favBtn.setAttribute("aria-pressed", String(on));
+      favIcon.textContent = on ? "★" : "☆";
+      favBtn.classList.toggle("is-on", on);
+    }
+
+    function updateSavedCount() {
+      savedCountEl.textContent = String(state.favorites.length);
+    }
+
+    function renderFavorites() {
+      favoritesList.innerHTML = "";
+      updateSavedCount();
+
+      const favItems = state.favorites
+        .map(id => QUESTIONS.find(q => q.id === id))
+        .filter(Boolean);
+
+      favoritesEmpty.style.display = favItems.length ? "none" : "block";
+
+      // Optional: hide the whole section if nothing is saved (comment out if you prefer it always visible)
+      // favoritesSection.style.display = favItems.length ? "block" : "none";
+
+      for (const q of favItems) {
+        const li = document.createElement("li");
+        li.className = "favItem";
+        li.innerHTML = `
+          <div class="favTop">
+            <span class="pill pill-small" data-cat="${escapeHtml(q.category)}">${escapeHtml(q.category)}</span>
+            <button class="iconBtn" type="button" title="Remove" aria-label="Remove">✕</button>
+          </div>
+          <div class="favQ">${escapeHtml(q.question)}</div>
+        `;
+        li.querySelector("button").addEventListener("click", () => {
+          state.favorites = state.favorites.filter(x => x !== q.id);
+          persistFavorites();
+          renderFavoriteButton();
+          renderFavorites();
+        });
+        favoritesList.appendChild(li);
+      }
+    }
+
+    function toggleFavorite(id) {
+      if (id == null) return;
+
+      if (isFavorited(id)) {
+        state.favorites = state.favorites.filter(x => x !== id);
+      } else {
+        state.favorites = [id, ...state.favorites];
+      }
+
+      persistFavorites();
+      renderFavoriteButton();
+      renderFavorites();
+      toast(isFavorited(id) ? "Saved for later" : "Removed");
+    }
+
+    // ---------- Card ----------
+    function setCurrentQuestion(q) {
+      if (!q) return;
+
+      state.currentId = q.id;
+      questionEl.textContent = q.question;
+
+      // Update availability counts
+      const list = filteredQuestions(state.category);
+      const used = usedSetFor(state.category);
+      const availableCount =
+        state.mode === "any" ? list.length : list.filter(x => !used.has(x.id)).length;
+
+      setMeta(state.category, availableCount, list.length);
+
+      // Mark used (only in noRepeat mode)
+      if (state.mode === "noRepeat") markUsed(state.category, q.id);
+
+      renderFavoriteButton();
+      updateUrlState();
+      animateCard();
+    }
+
+    // ---------- Copy / Share ----------
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        toast("Copied!");
+      } catch {
+        // fallback
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        toast("Copied!");
+      }
+    }
+
+    function toast(msg) {
+      const t = document.createElement("div");
+      t.className = "toast";
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.classList.add("show"), 10);
+      setTimeout(() => {
+        t.classList.remove("show");
+        setTimeout(() => t.remove(), 300);
+      }, 1200);
+    }
+
+    function animateCard() {
       const card = $("card");
+      if (!card) return;
       card.classList.remove("is-animating");
-      void card.offsetWidth;
+      void card.offsetWidth; // reflow
       card.classList.add("is-animating");
     }
 
-    function initCategories(){
-      const cats = ["All", ...new Set(QUESTIONS.map(q => q.category))];
-      cats.forEach(c => {
-        const o = document.createElement("option");
-        o.value = c;
-        o.textContent = c;
-        categorySelect.appendChild(o);
-      });
+    function buildShareUrl() {
+      const url = new URL(window.location.href);
+      url.searchParams.set("cat", state.category);
+      url.searchParams.set("mode", state.mode);
+      if (state.currentId != null) url.searchParams.set("q", String(state.currentId));
+      return url.toString();
     }
 
-    function available(){
-      return QUESTIONS.filter(q =>
-        (state.category === "All" || q.category === state.category) &&
-        (state.mode === "repeat" || !state.seen.has(q.id))
-      );
+    function updateUrlState() {
+      const url = new URL(window.location.href);
+      url.searchParams.set("cat", state.category);
+      url.searchParams.set("mode", state.mode);
+      if (state.currentId != null) url.searchParams.set("q", String(state.currentId));
+      window.history.replaceState({}, "", url);
     }
 
-    function draw(){
-      const pool = available();
-      if (!pool.length) return null;
-      return pool[Math.floor(Math.random() * pool.length)];
-    }
+    function hydrateFromUrl() {
+      const url = new URL(window.location.href);
+      const cat = url.searchParams.get("cat");
+      const mode = url.searchParams.get("mode");
+      const q = url.searchParams.get("q");
 
-    function show(q){
-      if (!q) {
-        questionEl.textContent = "That deck is empty — reset it to keep going.";
-        return;
+      if (cat && (cat === "All" || categories.includes(cat))) state.category = cat;
+      if (mode && (mode === "noRepeat" || mode === "any")) state.mode = mode;
+
+      categorySelect.value = state.category;
+      modeSelect.value = state.mode;
+
+      if (q) {
+        const id = Number(q);
+        const found = QUESTIONS.find(x => x.id === id);
+        if (found) {
+          state.currentId = found.id;
+          questionEl.textContent = found.question;
+        } else {
+          questionEl.innerHTML = "Tap <b>New Question</b> to deal your first card.";
+        }
       }
-      state.current = q;
-      if (state.mode === "norepeat") state.seen.add(q.id);
 
-      document.body.dataset.activeCat = q.category;
-      pillEl.textContent = q.category;
-      questionEl.textContent = q.question;
+      // meta counts
+      const list = filteredQuestions(state.category);
+      const used = usedSetFor(state.category);
+      const availableCount =
+        state.mode === "any" ? list.length : list.filter(x => !used.has(x.id)).length;
 
-      const pool = available();
-      countEl.textContent = `${pool.length} / ${QUESTIONS.filter(x =>
-        state.category === "All" || x.category === state.category
-      ).length} available`;
+      setMeta(state.category, availableCount, list.length);
+
+      renderFavoriteButton();
+      renderFavorites();
     }
 
-    function renderFavorites(){
-      favoritesList.innerHTML = "";
-      savedCountEl.textContent = state.favorites.length;
-      favoritesEmpty.style.display = state.favorites.length ? "none" : "block";
+    // ---------- Event listeners ----------
+    $("newBtn").addEventListener("click", () => {
+      const q = getNextQuestion();
+      setCurrentQuestion(q);
+    });
 
-      state.favorites.forEach(f => {
-        const li = document.createElement("li");
-        li.className = "favItem";
-        li.innerHTML = `<div class="favQ">${f.question}</div>`;
-        favoritesList.appendChild(li);
-      });
-    }
+    // Tap card to deal (matches the on-screen instruction)
+    $("card").addEventListener("click", () => $("newBtn").click());
 
-    newBtn.onclick = () => {
-      animateCard();
-      show(draw());
-    };
+    $("copyBtn").addEventListener("click", () => {
+      const text = state.currentId ? questionEl.textContent : "";
+      if (!text) return toast("Pick a question first");
+      copyText(text);
+    });
 
-    resetDeckBtn.onclick = () => {
-      state.seen.clear();
-      toast("Deck reset (no repeats cleared)");
-    };
+    favBtn.addEventListener("click", () => toggleFavorite(state.currentId));
 
-    copyBtn.onclick = () => {
-      if (!state.current) return;
-      navigator.clipboard.writeText(state.current.question);
-      toast("Copied");
-    };
+    $("clearFavsBtn").addEventListener("click", () => {
+      state.favorites = [];
+      persistFavorites();
+      renderFavoriteButton();
+      renderFavorites();
+      toast("Cleared");
+    });
 
-    favBtn.onclick = () => {
-      if (!state.current) return;
-      if (!state.favorites.find(f => f.id === state.current.id)) {
-        state.favorites.push(state.current);
-        localStorage.setItem("favorites", JSON.stringify(state.favorites));
-        renderFavorites();
-        toast("Saved for later");
-      }
-    };
+    $("copyFavsBtn").addEventListener("click", () => {
+      const favItems = state.favorites
+        .map(id => QUESTIONS.find(q => q.id === id))
+        .filter(Boolean);
 
-    shareBtn.onclick = () => {
-      navigator.clipboard.writeText(location.href);
-      toast("Link copied");
-    };
+      if (!favItems.length) return toast("Nothing saved yet");
+      const text = favItems.map(q => `[${q.category}] ${q.question}`).join("\n");
+      copyText(text);
+    });
 
-    categorySelect.onchange = e => {
-      state.category = e.target.value;
-      state.seen.clear();
-      document.body.dataset.activeCat = state.category;
-      pillEl.textContent = state.category;
+    $("shareBtn").addEventListener("click", () => {
+      copyText(buildShareUrl());
+    });
+
+    $("resetDeckBtn").addEventListener("click", () => {
+      resetUsed(state.category);
+      const list = filteredQuestions(state.category);
+      setMeta(state.category, list.length, list.length);
+      toast("Deck reset");
+      updateUrlState();
+    });
+
+    categorySelect.addEventListener("change", () => {
+      state.category = categorySelect.value;
+      state.currentId = null;
       questionEl.innerHTML = "Tap <b>New Question</b> to deal your first card.";
-      countEl.textContent = "";
-    };
 
-    modeSelect.onchange = e => {
-      state.mode = e.target.value;
-      state.seen.clear();
-    };
+      const list = filteredQuestions(state.category);
+      const used = usedSetFor(state.category);
+      const availableCount =
+        state.mode === "any" ? list.length : list.filter(x => !used.has(x.id)).length;
 
-    initCategories();
-    renderFavorites();
+      setMeta(state.category, availableCount, list.length);
+      renderFavoriteButton();
+      updateUrlState();
+    });
+
+    modeSelect.addEventListener("change", () => {
+      state.mode = modeSelect.value;
+
+      const list = filteredQuestions(state.category);
+      const used = usedSetFor(state.category);
+      const availableCount =
+        state.mode === "any" ? list.length : list.filter(x => !used.has(x.id)).length;
+
+      setMeta(state.category, availableCount, list.length);
+      updateUrlState();
+    });
+
+    // ---------- Boot ----------
+    initCategorySelect();
+    hydrateFromUrl();
   </script>
 </body>
 </html>
