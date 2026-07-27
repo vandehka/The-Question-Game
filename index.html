@@ -3,88 +3,200 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <title>The Question Game</title>
+
+  <meta
+    name="description"
+    content="Meaningful conversations, one card at a time."
+  />
+
   <link rel="stylesheet" href="style.css" />
-  <meta name="description" content="Pick a vibe, pull a card, and keep it moving." />
 </head>
+
 <body>
+  <div class="backgroundDecor decorOne" aria-hidden="true">✦</div>
+  <div class="backgroundDecor decorTwo" aria-hidden="true">♡</div>
+  <div class="backgroundDecor decorThree" aria-hidden="true">✧</div>
+  <div class="backgroundDecor decorFour" aria-hidden="true">♢</div>
+
   <main class="wrap">
     <header class="header">
-      <div>
-        <h1>🃏 The Question Game</h1>
-        <p class="sub">Pick a vibe, pull a card, and keep it moving ✨</p>
+      <div class="brand">
+        <div class="brandIcon" aria-hidden="true">♢</div>
+
+        <div>
+          <h1>The Question Game</h1>
+          <p class="sub">
+            Meaningful conversations, one card at a time.
+          </p>
+        </div>
       </div>
-      <button id="shareBtn" class="btn btn-ghost" type="button" title="Copy a shareable link">
-        Share
+
+      <button
+        id="shareBtn"
+        class="btn btn-icon"
+        type="button"
+        title="Copy a shareable link"
+        aria-label="Share this question"
+      >
+        <span aria-hidden="true">↗</span>
       </button>
     </header>
 
-    <section class="controls" aria-label="Controls">
+    <section class="controls" aria-label="Deck controls">
       <label class="field">
         <span class="label">Vibe</span>
-        <select id="categorySelect" class="select">
-          <option value="All">All</option>
-        </select>
+
+        <span class="selectWrap">
+          <select id="categorySelect" class="select">
+            <option value="All">All</option>
+          </select>
+        </span>
       </label>
 
       <label class="field">
-        <span class="label">Mode</span>
-        <select id="modeSelect" class="select">
-          <option value="noRepeat">No repeats (recommended)</option>
-          <option value="any">Any random</option>
-        </select>
-      </label>
+        <span class="label">Deck style</span>
 
-      <div class="buttons">
-        <button id="resetDeckBtn" class="btn btn-ghost" type="button">Reset deck</button>
-        <button id="newBtn" class="btn btn-primary" type="button">New Question</button>
-        <button id="copyBtn" class="btn btn-ghost" type="button">Copy</button>
-        <button id="favBtn" class="btn btn-ghost" type="button" aria-pressed="false" title="Save for later">
-          <span id="favIcon" aria-hidden="true">☆</span> Save for later
+        <span class="selectWrap">
+          <select id="modeSelect" class="select">
+            <option value="noRepeat">No repeats</option>
+            <option value="any">Any random card</option>
+          </select>
+        </span>
+      </label>
+    </section>
+
+    <section class="gameArea">
+      <div class="deck" aria-hidden="true">
+        <div class="deckCard deckCardBack"></div>
+        <div class="deckCard deckCardMiddle"></div>
+      </div>
+
+      <section
+        id="card"
+        class="card"
+        aria-live="polite"
+        tabindex="0"
+        role="button"
+        aria-label="Deal a new question"
+      >
+        <div class="cardBorder" aria-hidden="true"></div>
+        <div class="cornerMark cornerTop" aria-hidden="true">♢</div>
+        <div class="cornerMark cornerBottom" aria-hidden="true">♢</div>
+
+        <div class="meta">
+          <span id="pill" class="pill">All</span>
+          <span id="count" class="count"></span>
+        </div>
+
+        <div class="questionWrap">
+          <p id="question" class="question is-welcome">
+            <span class="welcomeMark" aria-hidden="true">♢</span>
+            <span class="welcomeTitle">Ready?</span>
+            <span class="welcomeText">Tap the card to begin.</span>
+          </p>
+        </div>
+
+        <p class="tapHint">Tap the card for the next question</p>
+      </section>
+    </section>
+
+    <section class="primaryActions">
+      <button id="newBtn" class="btn btn-primary" type="button">
+        <span class="buttonDiamond" aria-hidden="true">♢</span>
+        Deal Next Card
+      </button>
+
+      <div class="secondaryActions">
+        <button
+          id="favBtn"
+          class="btn btn-secondary"
+          type="button"
+          aria-pressed="false"
+          title="Save for later"
+        >
+          <span id="favIcon" aria-hidden="true">♡</span>
+          <span id="favText">Save</span>
+        </button>
+
+        <button id="copyBtn" class="btn btn-secondary" type="button">
+          <span aria-hidden="true">⧉</span>
+          Copy
+        </button>
+
+        <button id="resetDeckBtn" class="btn btn-secondary" type="button">
+          <span aria-hidden="true">↻</span>
+          Reset
         </button>
       </div>
     </section>
 
-    <section id="card" class="card" aria-live="polite">
-      <div class="cardGlow" aria-hidden="true"></div>
-      <div class="cardSheen" aria-hidden="true"></div>
-      <div class="meta">
-        <span id="pill" class="pill">All</span>
-        <span id="count" class="count"></span>
-      </div>
-      <p id="question" class="question">Tap <b>New Question</b> to deal your first card.</p>
-    </section>
-
     <section id="favoritesSection" class="favorites">
       <div class="favoritesHead">
-        <h2>Saved for later (<span id="savedCount">0</span>)</h2>
+        <div>
+          <span class="sectionEyebrow">Your collection</span>
+
+          <h2>
+            Saved Cards
+            <span class="savedBadge">
+              <span id="savedCount">0</span>
+            </span>
+          </h2>
+        </div>
+
         <div class="favoritesActions">
-          <button id="clearFavsBtn" class="btn btn-ghost" type="button">Clear</button>
-          <button id="copyFavsBtn" class="btn btn-ghost" type="button">Copy all</button>
+          <button
+            id="copyFavsBtn"
+            class="textButton"
+            type="button"
+          >
+            Copy all
+          </button>
+
+          <button
+            id="clearFavsBtn"
+            class="textButton textButtonDanger"
+            type="button"
+          >
+            Clear
+          </button>
         </div>
       </div>
+
       <ul id="favoritesList" class="favoritesList"></ul>
-      <p id="favoritesEmpty" class="muted">Nothing saved yet — save a question to revisit it later.</p>
+
+      <div id="favoritesEmpty" class="favoritesEmpty">
+        <span class="emptyHeart" aria-hidden="true">♡</span>
+        <p>Save a question you would love to revisit.</p>
+      </div>
     </section>
 
     <footer class="footer">
-      <span class="muted">Tip: Bookmark this page or add it to your home screen for quick access.</span>
+      <span>Made for slow conversations and good company.</span>
+      <span aria-hidden="true">♡</span>
     </footer>
   </main>
 
   <script src="questions.js"></script>
+
   <script>
     // ---------- Helpers ----------
     const $ = (id) => document.getElementById(id);
 
     const storage = {
       get(key, fallback) {
-        try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
-        catch { return fallback; }
+        try {
+          return JSON.parse(localStorage.getItem(key)) ?? fallback;
+        } catch {
+          return fallback;
+        }
       },
+
       set(key, value) {
         localStorage.setItem(key, JSON.stringify(value));
       },
+
       remove(key) {
         localStorage.removeItem(key);
       }
@@ -103,26 +215,42 @@
       return list[Math.floor(Math.random() * list.length)];
     }
 
+    function welcomeMarkup() {
+      return `
+        <span class="welcomeMark" aria-hidden="true">♢</span>
+        <span class="welcomeTitle">Ready?</span>
+        <span class="welcomeText">Tap the card to begin.</span>
+      `;
+    }
+
     // ---------- Data ----------
     const QUESTIONS = (window.QUESTIONS || [])
-      .map(q => ({
+      .map((q) => ({
         id: q.id,
         category: String(q.category || "").trim(),
         question: String(q.question || "").trim()
       }))
-      .filter(q => q.category && q.question);
+      .filter((q) => q.category && q.question);
 
-    const categories = Array.from(new Set(QUESTIONS.map(q => q.category))).sort();
+    const categories = Array.from(
+      new Set(QUESTIONS.map((q) => q.category))
+    ).sort();
 
     // ---------- State ----------
     const state = {
       category: "All",
       mode: "noRepeat",
       currentId: null,
-      // usedByCategory holds arrays of question ids used for each category + All
-      usedByCategory: storage.get("cs_usedByCategory_v1", {}),
-      // favorites holds question ids
-      favorites: storage.get("cs_favorites_v1", [])
+
+      usedByCategory: storage.get(
+        "cs_usedByCategory_v1",
+        {}
+      ),
+
+      favorites: storage.get(
+        "cs_favorites_v1",
+        []
+      )
     };
 
     // ---------- UI Elements ----------
@@ -131,26 +259,36 @@
     const questionEl = $("question");
     const pillEl = $("pill");
     const countEl = $("count");
+    const cardEl = $("card");
+
     const favBtn = $("favBtn");
     const favIcon = $("favIcon");
-    const favoritesSection = $("favoritesSection");
+    const favText = $("favText");
+
     const favoritesList = $("favoritesList");
     const favoritesEmpty = $("favoritesEmpty");
     const savedCountEl = $("savedCount");
 
-    // ---------- Init controls ----------
+    // ---------- Controls ----------
     function initCategorySelect() {
-      for (const c of categories) {
-        const opt = document.createElement("option");
-        opt.value = c;
-        opt.textContent = c;
-        categorySelect.appendChild(opt);
+      for (const category of categories) {
+        const option = document.createElement("option");
+
+        option.value = category;
+        option.textContent = category;
+
+        categorySelect.appendChild(option);
       }
     }
 
     function filteredQuestions(category) {
-      if (category === "All") return QUESTIONS;
-      return QUESTIONS.filter(q => q.category === category);
+      if (category === "All") {
+        return QUESTIONS;
+      }
+
+      return QUESTIONS.filter(
+        (question) => question.category === category
+      );
     }
 
     function usedSetFor(category) {
@@ -160,301 +298,557 @@
 
     function markUsed(category, id) {
       const used = state.usedByCategory[category] || [];
-      if (!used.includes(id)) used.push(id);
+
+      if (!used.includes(id)) {
+        used.push(id);
+      }
+
       state.usedByCategory[category] = used;
-      storage.set("cs_usedByCategory_v1", state.usedByCategory);
+
+      storage.set(
+        "cs_usedByCategory_v1",
+        state.usedByCategory
+      );
     }
 
     function resetUsed(category) {
       state.usedByCategory[category] = [];
-      storage.set("cs_usedByCategory_v1", state.usedByCategory);
+
+      storage.set(
+        "cs_usedByCategory_v1",
+        state.usedByCategory
+      );
     }
 
     function setMeta(category, availableCount, totalCount) {
       pillEl.textContent = category;
       pillEl.dataset.cat = category;
+
       document.body.dataset.activeCat = category;
-      countEl.textContent = totalCount ? `${availableCount} / ${totalCount} available` : "";
+
+      countEl.textContent = totalCount
+        ? `${availableCount} of ${totalCount} remaining`
+        : "";
+    }
+
+    function updateAvailability() {
+      const list = filteredQuestions(state.category);
+      const used = usedSetFor(state.category);
+
+      const availableCount =
+        state.mode === "any"
+          ? list.length
+          : list.filter(
+              (question) => !used.has(question.id)
+            ).length;
+
+      setMeta(
+        state.category,
+        availableCount,
+        list.length
+      );
     }
 
     function getNextQuestion() {
       const list = filteredQuestions(state.category);
-      const totalCount = list.length;
-      if (totalCount === 0) return null;
 
-      if (state.mode === "any") return pickRandom(list);
+      if (list.length === 0) {
+        return null;
+      }
 
-      // noRepeat
+      if (state.mode === "any") {
+        return pickRandom(list);
+      }
+
       const used = usedSetFor(state.category);
-      let available = list.filter(q => !used.has(q.id));
+
+      let available = list.filter(
+        (question) => !used.has(question.id)
+      );
 
       if (available.length === 0) {
-        // auto-reset and continue
         resetUsed(state.category);
         available = list;
+
+        toast("The deck has been reshuffled");
       }
 
       return pickRandom(available);
     }
 
-    // ---------- Favorites / Saved for later ----------
+    // ---------- Favorites ----------
     function isFavorited(id) {
       return state.favorites.includes(id);
     }
 
     function persistFavorites() {
-      // Important: remove the key when empty so it truly clears (Safari can be sticky with "[]")
-      if (!Array.isArray(state.favorites) || state.favorites.length === 0) {
+      if (
+        !Array.isArray(state.favorites) ||
+        state.favorites.length === 0
+      ) {
         state.favorites = [];
         storage.remove("cs_favorites_v1");
       } else {
-        storage.set("cs_favorites_v1", state.favorites);
+        storage.set(
+          "cs_favorites_v1",
+          state.favorites
+        );
       }
     }
 
     function renderFavoriteButton() {
-      const on = isFavorited(state.currentId);
-      favBtn.setAttribute("aria-pressed", String(on));
-      favIcon.textContent = on ? "★" : "☆";
-      favBtn.classList.toggle("is-on", on);
+      const isSaved =
+        state.currentId !== null &&
+        isFavorited(state.currentId);
+
+      favBtn.setAttribute(
+        "aria-pressed",
+        String(isSaved)
+      );
+
+      favBtn.classList.toggle(
+        "is-on",
+        isSaved
+      );
+
+      favIcon.textContent = isSaved ? "♥" : "♡";
+      favText.textContent = isSaved ? "Saved" : "Save";
     }
 
     function updateSavedCount() {
-      savedCountEl.textContent = String(state.favorites.length);
+      savedCountEl.textContent =
+        String(state.favorites.length);
     }
 
     function renderFavorites() {
       favoritesList.innerHTML = "";
       updateSavedCount();
 
-      const favItems = state.favorites
-        .map(id => QUESTIONS.find(q => q.id === id))
+      const favoriteItems = state.favorites
+        .map((id) =>
+          QUESTIONS.find(
+            (question) => question.id === id
+          )
+        )
         .filter(Boolean);
 
-      favoritesEmpty.style.display = favItems.length ? "none" : "block";
+      favoritesEmpty.style.display =
+        favoriteItems.length ? "none" : "flex";
 
-      // Optional: hide the whole section if nothing is saved (comment out if you prefer it always visible)
-      // favoritesSection.style.display = favItems.length ? "block" : "none";
+      for (const question of favoriteItems) {
+        const item = document.createElement("li");
 
-      for (const q of favItems) {
-        const li = document.createElement("li");
-        li.className = "favItem";
-        li.innerHTML = `
+        item.className = "favItem";
+
+        item.innerHTML = `
           <div class="favTop">
-            <span class="pill pill-small" data-cat="${escapeHtml(q.category)}">${escapeHtml(q.category)}</span>
-            <button class="iconBtn" type="button" title="Remove" aria-label="Remove">✕</button>
+            <span
+              class="pill pill-small"
+              data-cat="${escapeHtml(question.category)}"
+            >
+              ${escapeHtml(question.category)}
+            </span>
+
+            <button
+              class="iconBtn"
+              type="button"
+              title="Remove saved card"
+              aria-label="Remove saved card"
+            >
+              ×
+            </button>
           </div>
-          <div class="favQ">${escapeHtml(q.question)}</div>
+
+          <p class="favQ">
+            ${escapeHtml(question.question)}
+          </p>
         `;
-        li.querySelector("button").addEventListener("click", () => {
-          state.favorites = state.favorites.filter(x => x !== q.id);
-          persistFavorites();
-          renderFavoriteButton();
-          renderFavorites();
-        });
-        favoritesList.appendChild(li);
+
+        item
+          .querySelector(".iconBtn")
+          .addEventListener("click", () => {
+            state.favorites =
+              state.favorites.filter(
+                (id) => id !== question.id
+              );
+
+            persistFavorites();
+            renderFavoriteButton();
+            renderFavorites();
+
+            toast("Removed from saved cards");
+          });
+
+        favoritesList.appendChild(item);
       }
     }
 
     function toggleFavorite(id) {
-      if (id == null) return;
+      if (id === null) {
+        toast("Deal a card first");
+        return;
+      }
 
       if (isFavorited(id)) {
-        state.favorites = state.favorites.filter(x => x !== id);
+        state.favorites =
+          state.favorites.filter(
+            (favoriteId) => favoriteId !== id
+          );
       } else {
-        state.favorites = [id, ...state.favorites];
+        state.favorites = [
+          id,
+          ...state.favorites
+        ];
       }
 
       persistFavorites();
       renderFavoriteButton();
       renderFavorites();
-      toast(isFavorited(id) ? "Saved for later" : "Removed");
+
+      toast(
+        isFavorited(id)
+          ? "Saved for later"
+          : "Removed from saved cards"
+      );
     }
 
     // ---------- Card ----------
-    function setCurrentQuestion(q) {
-      if (!q) return;
+    function setWelcomeState() {
+      state.currentId = null;
 
-      state.currentId = q.id;
-      questionEl.textContent = q.question;
+      questionEl.classList.add("is-welcome");
+      questionEl.innerHTML = welcomeMarkup();
 
-      // Update availability counts
-      const list = filteredQuestions(state.category);
-      const used = usedSetFor(state.category);
-      const availableCount =
-        state.mode === "any" ? list.length : list.filter(x => !used.has(x.id)).length;
+      renderFavoriteButton();
+    }
 
-      setMeta(state.category, availableCount, list.length);
+    function setCurrentQuestion(question) {
+      if (!question) {
+        toast("No questions found in this vibe");
+        return;
+      }
 
-      // Mark used (only in noRepeat mode)
-      if (state.mode === "noRepeat") markUsed(state.category, q.id);
+      state.currentId = question.id;
 
+      questionEl.classList.remove("is-welcome");
+      questionEl.textContent = question.question;
+
+      if (state.mode === "noRepeat") {
+        markUsed(
+          state.category,
+          question.id
+        );
+      }
+
+      updateAvailability();
       renderFavoriteButton();
       updateUrlState();
       animateCard();
+    }
+
+    function dealNextCard() {
+      const nextQuestion = getNextQuestion();
+      setCurrentQuestion(nextQuestion);
+    }
+
+    function animateCard() {
+      cardEl.classList.remove("is-animating");
+
+      void cardEl.offsetWidth;
+
+      cardEl.classList.add("is-animating");
     }
 
     // ---------- Copy / Share ----------
     async function copyText(text) {
       try {
         await navigator.clipboard.writeText(text);
-        toast("Copied!");
+        toast("Copied");
       } catch {
-        // fallback
-        const ta = document.createElement("textarea");
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
+        const textArea =
+          document.createElement("textarea");
+
+        textArea.value = text;
+        textArea.setAttribute("readonly", "");
+
+        document.body.appendChild(textArea);
+        textArea.select();
+
         document.execCommand("copy");
-        document.body.removeChild(ta);
-        toast("Copied!");
+        document.body.removeChild(textArea);
+
+        toast("Copied");
       }
     }
 
-    function toast(msg) {
-      const t = document.createElement("div");
-      t.className = "toast";
-      t.textContent = msg;
-      document.body.appendChild(t);
-      setTimeout(() => t.classList.add("show"), 10);
-      setTimeout(() => {
-        t.classList.remove("show");
-        setTimeout(() => t.remove(), 300);
-      }, 1200);
-    }
+    function toast(message) {
+      const existingToast =
+        document.querySelector(".toast");
 
-    function animateCard() {
-      const card = $("card");
-      if (!card) return;
-      card.classList.remove("is-animating");
-      void card.offsetWidth; // reflow
-      card.classList.add("is-animating");
+      if (existingToast) {
+        existingToast.remove();
+      }
+
+      const toastEl =
+        document.createElement("div");
+
+      toastEl.className = "toast";
+      toastEl.textContent = message;
+
+      document.body.appendChild(toastEl);
+
+      setTimeout(() => {
+        toastEl.classList.add("show");
+      }, 10);
+
+      setTimeout(() => {
+        toastEl.classList.remove("show");
+
+        setTimeout(() => {
+          toastEl.remove();
+        }, 300);
+      }, 1500);
     }
 
     function buildShareUrl() {
       const url = new URL(window.location.href);
-      url.searchParams.set("cat", state.category);
-      url.searchParams.set("mode", state.mode);
-      if (state.currentId != null) url.searchParams.set("q", String(state.currentId));
+
+      url.searchParams.set(
+        "cat",
+        state.category
+      );
+
+      url.searchParams.set(
+        "mode",
+        state.mode
+      );
+
+      if (state.currentId !== null) {
+        url.searchParams.set(
+          "q",
+          String(state.currentId)
+        );
+      } else {
+        url.searchParams.delete("q");
+      }
+
       return url.toString();
     }
 
     function updateUrlState() {
       const url = new URL(window.location.href);
-      url.searchParams.set("cat", state.category);
-      url.searchParams.set("mode", state.mode);
-      if (state.currentId != null) url.searchParams.set("q", String(state.currentId));
-      window.history.replaceState({}, "", url);
+
+      url.searchParams.set(
+        "cat",
+        state.category
+      );
+
+      url.searchParams.set(
+        "mode",
+        state.mode
+      );
+
+      if (state.currentId !== null) {
+        url.searchParams.set(
+          "q",
+          String(state.currentId)
+        );
+      } else {
+        url.searchParams.delete("q");
+      }
+
+      window.history.replaceState(
+        {},
+        "",
+        url
+      );
     }
 
     function hydrateFromUrl() {
       const url = new URL(window.location.href);
-      const cat = url.searchParams.get("cat");
-      const mode = url.searchParams.get("mode");
-      const q = url.searchParams.get("q");
 
-      if (cat && (cat === "All" || categories.includes(cat))) state.category = cat;
-      if (mode && (mode === "noRepeat" || mode === "any")) state.mode = mode;
+      const category =
+        url.searchParams.get("cat");
+
+      const mode =
+        url.searchParams.get("mode");
+
+      const questionId =
+        url.searchParams.get("q");
+
+      if (
+        category &&
+        (
+          category === "All" ||
+          categories.includes(category)
+        )
+      ) {
+        state.category = category;
+      }
+
+      if (
+        mode === "noRepeat" ||
+        mode === "any"
+      ) {
+        state.mode = mode;
+      }
 
       categorySelect.value = state.category;
       modeSelect.value = state.mode;
 
-      if (q) {
-        const id = Number(q);
-        const found = QUESTIONS.find(x => x.id === id);
-        if (found) {
-          state.currentId = found.id;
-          questionEl.textContent = found.question;
+      if (questionId) {
+        const id = Number(questionId);
+
+        const foundQuestion =
+          QUESTIONS.find(
+            (question) => question.id === id
+          );
+
+        if (foundQuestion) {
+          state.currentId = foundQuestion.id;
+
+          questionEl.classList.remove(
+            "is-welcome"
+          );
+
+          questionEl.textContent =
+            foundQuestion.question;
         } else {
-          questionEl.innerHTML = "Tap <b>New Question</b> to deal your first card.";
+          setWelcomeState();
         }
+      } else {
+        setWelcomeState();
       }
 
-      // meta counts
-      const list = filteredQuestions(state.category);
-      const used = usedSetFor(state.category);
-      const availableCount =
-        state.mode === "any" ? list.length : list.filter(x => !used.has(x.id)).length;
-
-      setMeta(state.category, availableCount, list.length);
-
+      updateAvailability();
       renderFavoriteButton();
       renderFavorites();
     }
 
     // ---------- Event listeners ----------
-    $("newBtn").addEventListener("click", () => {
-      const q = getNextQuestion();
-      setCurrentQuestion(q);
-    });
+    $("newBtn").addEventListener(
+      "click",
+      dealNextCard
+    );
 
-    // Tap card to deal (matches the on-screen instruction)
-    $("card").addEventListener("click", () => $("newBtn").click());
+    cardEl.addEventListener(
+      "click",
+      dealNextCard
+    );
 
-    $("copyBtn").addEventListener("click", () => {
-      const text = state.currentId ? questionEl.textContent : "";
-      if (!text) return toast("Pick a question first");
-      copyText(text);
-    });
+    cardEl.addEventListener(
+      "keydown",
+      (event) => {
+        if (
+          event.key === "Enter" ||
+          event.key === " "
+        ) {
+          event.preventDefault();
+          dealNextCard();
+        }
+      }
+    );
 
-    favBtn.addEventListener("click", () => toggleFavorite(state.currentId));
+    $("copyBtn").addEventListener(
+      "click",
+      () => {
+        if (state.currentId === null) {
+          toast("Deal a card first");
+          return;
+        }
 
-    $("clearFavsBtn").addEventListener("click", () => {
-      state.favorites = [];
-      persistFavorites();
-      renderFavoriteButton();
-      renderFavorites();
-      toast("Cleared");
-    });
+        copyText(questionEl.textContent);
+      }
+    );
 
-    $("copyFavsBtn").addEventListener("click", () => {
-      const favItems = state.favorites
-        .map(id => QUESTIONS.find(q => q.id === id))
-        .filter(Boolean);
+    favBtn.addEventListener(
+      "click",
+      () => {
+        toggleFavorite(state.currentId);
+      }
+    );
 
-      if (!favItems.length) return toast("Nothing saved yet");
-      const text = favItems.map(q => `[${q.category}] ${q.question}`).join("\n");
-      copyText(text);
-    });
+    $("clearFavsBtn").addEventListener(
+      "click",
+      () => {
+        state.favorites = [];
 
-    $("shareBtn").addEventListener("click", () => {
-      copyText(buildShareUrl());
-    });
+        persistFavorites();
+        renderFavoriteButton();
+        renderFavorites();
 
-    $("resetDeckBtn").addEventListener("click", () => {
-      resetUsed(state.category);
-      const list = filteredQuestions(state.category);
-      setMeta(state.category, list.length, list.length);
-      toast("Deck reset");
-      updateUrlState();
-    });
+        toast("Saved cards cleared");
+      }
+    );
 
-    categorySelect.addEventListener("change", () => {
-      state.category = categorySelect.value;
-      state.currentId = null;
-      questionEl.innerHTML = "Tap <b>New Question</b> to deal your first card.";
+    $("copyFavsBtn").addEventListener(
+      "click",
+      () => {
+        const favoriteItems =
+          state.favorites
+            .map((id) =>
+              QUESTIONS.find(
+                (question) =>
+                  question.id === id
+              )
+            )
+            .filter(Boolean);
 
-      const list = filteredQuestions(state.category);
-      const used = usedSetFor(state.category);
-      const availableCount =
-        state.mode === "any" ? list.length : list.filter(x => !used.has(x.id)).length;
+        if (!favoriteItems.length) {
+          toast("Nothing saved yet");
+          return;
+        }
 
-      setMeta(state.category, availableCount, list.length);
-      renderFavoriteButton();
-      updateUrlState();
-    });
+        const text = favoriteItems
+          .map(
+            (question) =>
+              `[${question.category}] ${question.question}`
+          )
+          .join("\n\n");
 
-    modeSelect.addEventListener("change", () => {
-      state.mode = modeSelect.value;
+        copyText(text);
+      }
+    );
 
-      const list = filteredQuestions(state.category);
-      const used = usedSetFor(state.category);
-      const availableCount =
-        state.mode === "any" ? list.length : list.filter(x => !used.has(x.id)).length;
+    $("shareBtn").addEventListener(
+      "click",
+      () => {
+        copyText(buildShareUrl());
+      }
+    );
 
-      setMeta(state.category, availableCount, list.length);
-      updateUrlState();
-    });
+    $("resetDeckBtn").addEventListener(
+      "click",
+      () => {
+        resetUsed(state.category);
+        updateAvailability();
+
+        toast("Deck reset");
+        updateUrlState();
+      }
+    );
+
+    categorySelect.addEventListener(
+      "change",
+      () => {
+        state.category =
+          categorySelect.value;
+
+        setWelcomeState();
+        updateAvailability();
+        updateUrlState();
+      }
+    );
+
+    modeSelect.addEventListener(
+      "change",
+      () => {
+        state.mode = modeSelect.value;
+
+        updateAvailability();
+        updateUrlState();
+      }
+    );
 
     // ---------- Boot ----------
     initCategorySelect();
