@@ -162,6 +162,14 @@
     }
     .welcome{display:flex;align-items:center;flex-direction:column}
    .welcomeSuit{
+    ...
+    position:relative;
+}
+
+.welcomeSuit::before{
+    position:relative;
+    top:2px;
+}
   display:grid;
   place-items:center;
   width:64px;
