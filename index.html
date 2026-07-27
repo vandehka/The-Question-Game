@@ -166,6 +166,15 @@
       color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);
       border-radius:50%;background:var(--accent-soft);font-size:32px
     }
+    .welcomeSuit.allWelcomeSuit{
+  width:auto;
+  min-width:76px;
+  padding:0 11px;
+  font-size:20px;
+  letter-spacing:1px;
+  line-height:1;
+  white-space:nowrap;
+}
     .welcomeTitle{font-size:clamp(35px,8vw,48px)}
     .welcomeText{margin-top:10px;color:var(--ink-soft);font-family:Inter,system-ui,sans-serif;font-size:13px}
     .hint{position:relative;z-index:3;margin:0;padding:0 16px;color:var(--ink-soft);font-size:9px;font-weight:800;letter-spacing:.13em;text-align:center;text-transform:uppercase}
@@ -334,7 +343,7 @@
 
     const themes = [
       {keys:["core"],suit:"♣",accent:"#7756c8",dark:"#56399b",soft:"#ebe4fb",bg1:"#1b1735",bg2:"#3a2c63",glow:"rgba(119,86,200,.34)"},
-      {keys:["deep","meaningful","vulnerable"],suit:"♦",accent:"#3f8a5c",dark:"#285f3c",soft:"#dff1e5",bg1:"#13271c",bg2:"#28513a",glow:"rgba(63,138,92,.32)"},
+      {keys:["deep","meaningful","vulnerable"],suit:"♠",accent:"#3f8a5c",dark:"#285f3c",soft:"#dff1e5",bg1:"#13271c",bg2:"#28513a",glow:"rgba(63,138,92,.32)"},
       {keys:["flirty","flirt","romance","romantic"],suit:"♥",accent:"#c76372",dark:"#9d4554",soft:"#f8dce1",bg1:"#2a1824",bg2:"#4b2336",glow:"rgba(199,99,114,.32)"},
       {keys:["fun","funny","light","lighthearted","silly"],suit:"♣",accent:"#d59b4c",dark:"#ad7430",soft:"#f8e9ce",bg1:"#252238",bg2:"#514326",glow:"rgba(213,155,76,.3)"},
       {keys:["spicy","bold","hot"],suit:"♠",accent:"#a84e57",dark:"#7e333c",soft:"#f1d9dc",bg1:"#24171d",bg2:"#51252c",glow:"rgba(168,78,87,.32)"},
@@ -367,6 +376,7 @@
       }
       ["cornerTop","cornerBottom"].forEach(id=>$(id)?.classList.toggle("allSuitsCorner",isAll));
       $("pillSuit")?.classList.toggle("pillSuitAll",isAll);
+      $("welcomeSuit")?.classList.toggle("allWelcomeSuit",isAll);
     }
     function list(){return state.category==="All"?QUESTIONS:QUESTIONS.filter(q=>q.category===state.category)}
     function usedSet(){return new Set(state.used[state.category]||[])}
