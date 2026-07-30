@@ -253,20 +253,45 @@
         font-size:10px;
       }
       .vibeRow{
-        grid-template-columns:repeat(2,minmax(0,1fr));
+        grid-template-columns:repeat(4,minmax(0,1fr));
+        gap:6px;
       }
       .vibeButton[data-category="All"]{
         grid-column:1 / -1;
       }
+      .vibeButton{
+        min-width:0;
+        padding-left:6px;
+        padding-right:6px;
+        gap:4px;
+        font-size:11px;
+      }
+      .vibeButtonSuit{
+        font-size:13px;
+      }
+      .vibeButton[data-category="All"]{
+        min-height:46px;
+      }
       .corner.bottom{
         right:18px;
-        bottom:44px;
-        font-size:20px;
+        bottom:25px;
+        font-size:18px;
       }
       .tapHint,
       .hint,
       .cardHint{
-        padding-right:34px;
+        padding-left:42px;
+        padding-right:42px;
+      }
+      @media(max-width:380px){
+        .vibeRow{gap:4px}
+        .vibeButton{
+          padding-left:4px;
+          padding-right:4px;
+          gap:3px;
+          font-size:10px;
+        }
+        .vibeButtonSuit{font-size:12px}
       }
     }
 </style>
