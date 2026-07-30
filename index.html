@@ -168,6 +168,20 @@
       color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);
       border-radius:50%;background:var(--accent-soft);font-size:32px
     }
+    .welcomeSuit.allWelcomeSuits{
+      grid-template-columns:repeat(2,1fr);
+      grid-template-rows:repeat(2,1fr);
+      gap:0;
+      padding:11px;
+      font-size:20px;
+      line-height:1;
+    }
+    .welcomeSuit.allWelcomeSuits span{
+      display:grid;
+      place-items:center;
+      width:100%;
+      height:100%;
+    }
     .welcomeTitle{font-size:clamp(35px,8vw,48px)}
     .welcomeText{margin-top:10px;color:var(--ink-soft);font-family:Inter,system-ui,sans-serif;font-size:13px}
     .hint{position:relative;z-index:3;margin:0;padding:0 16px;color:var(--ink-soft);font-size:9px;font-weight:800;letter-spacing:.13em;text-align:center;text-transform:uppercase}
@@ -329,7 +343,9 @@
         </div>
         <div class="questionWrap">
           <p id="question" class="question welcome">
-            <span id="welcomeSuit" class="welcomeSuit">✦</span>
+            <span id="welcomeSuit" class="welcomeSuit allWelcomeSuits">
+              <span>♥</span><span>♦</span><span>♣</span><span>♠</span>
+            </span>
             <span class="welcomeTitle">Ready?</span>
             <span class="welcomeText">Tap the card to begin.</span>
           </p>
@@ -393,7 +409,7 @@
       {keys:["relationship","couples","partner","love"],suit:"♡",accent:"#b9859c",dark:"#8d6175",soft:"#f2e0e8",bg1:"#211c31",bg2:"#493147",glow:"rgba(185,133,156,.3)"},
       {keys:["future","dreams","goals"],suit:"✦",accent:"#3f7f89",dark:"#285c64",soft:"#dceff1",bg1:"#132a31",bg2:"#28515a",glow:"rgba(63,127,137,.3)"}
     ];
-    const fallback = {suit:"♥<br>♦&nbsp;&nbsp;♣<br>♠",accent:"#4F7ED8",dark:"#3562BE",soft:"#E4EEFF",bg1:"#162342",bg2:"#2D4774",glow:"rgba(79,126,216,.32)"};
+    const fallback = {suit:"♥ ♦ ♣ ♠",accent:"#4F7ED8",dark:"#3562BE",soft:"#E4EEFF",bg1:"#162342",bg2:"#2D4774",glow:"rgba(79,126,216,.32)"};
 
     function themeFor(category){
       if(category==="All") return fallback;
@@ -409,7 +425,7 @@
       r.style.setProperty("--accent",t.accent);r.style.setProperty("--accent-dark",t.dark);
       r.style.setProperty("--accent-soft",t.soft);r.style.setProperty("--bg1",t.bg1);
       r.style.setProperty("--bg2",t.bg2);r.style.setProperty("--glow",t.glow);
-      ["cornerBottom","pillSuit","welcomeSuit","dealSuit"].forEach(id=>{if($(id))$(id).textContent=t.suit});
+      ["cornerBottom","pillSuit","dealSuit"].forEach(id=>{if($(id))$(id).textContent=t.suit});
       $("pillText").textContent=state.category;
       const isAll=state.category==="All";
       $("pillSuit")?.classList.toggle("pillSuitAll",isAll);
@@ -438,7 +454,10 @@
       state.currentId=null;
       const t=themeFor(state.category);
       $("question").className="question welcome";
-      $("question").innerHTML=`<span id="welcomeSuit" class="welcomeSuit">${t.suit}</span><span class="welcomeTitle">Ready?</span><span class="welcomeText">Tap the card to begin.</span>`;
+      const welcomeIcon=state.category==="All"
+        ? `<span id="welcomeSuit" class="welcomeSuit allWelcomeSuits"><span>♥</span><span>♦</span><span>♣</span><span>♠</span></span>`
+        : `<span id="welcomeSuit" class="welcomeSuit">${t.suit}</span>`;
+      $("question").innerHTML=`${welcomeIcon}<span class="welcomeTitle">Ready?</span><span class="welcomeText">Tap the card to begin.</span>`;
       renderFavButton();
     }
     function renderFavButton(){
