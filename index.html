@@ -38,9 +38,9 @@
     }
     .brandSuits{
       grid-template-columns:repeat(2,1fr);
-      gap:1px;
-      padding:8px;
-      font-size:14px;
+      gap:2px;
+      padding:7px;
+      font-size:12px;
       line-height:1;
     }
     .brandSuits span:nth-child(1){color:#c76372}
@@ -243,7 +243,33 @@
       .question{font-size:26px}
       .small{font-size:11px}
     }
-  </style>
+      @media(max-width:600px){
+      .brandSuits{
+        width:38px;
+        height:38px;
+        min-width:38px;
+        padding:6px;
+        gap:1px;
+        font-size:10px;
+      }
+      .vibeRow{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+      .vibeButton[data-category="All"]{
+        grid-column:1 / -1;
+      }
+      .corner.bottom{
+        right:18px;
+        bottom:44px;
+        font-size:20px;
+      }
+      .tapHint,
+      .hint,
+      .cardHint{
+        padding-right:34px;
+      }
+    }
+</style>
 </head>
 <body>
   <main class="page">
