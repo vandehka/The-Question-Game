@@ -479,7 +479,6 @@ window.QUESTIONS = [
     "category": "Light",
     "question": "What's something you always keep just in case?"
   },
-  window.QUESTIONS = [
   {
     "id": 1,
     "category": "Light",
