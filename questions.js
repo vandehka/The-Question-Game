@@ -1,4 +1,5 @@
 window.QUESTIONS = [
+{ 
     "id": 1,
     "category": "Light",
     "question": "If you could be any cartoon character for a day, who would you choose?"
